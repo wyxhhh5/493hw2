@@ -77,13 +77,15 @@ def evaluate(model: GPT, loader: DataLoader, device: torch.device) -> Tuple[floa
         for x, y in loader:
             x, y = x.to(device), y.to(device)
             logits = model(x)
-            loss = F.cross_entropy(logits.view(-1, logits.size(-1)), y.view(-1), ignore_index=-100)
-            total_loss += loss.item() * x.size(0)
-            preds = logits.argmax(-1)
+            loss = F.cross_entropy(
+                logits.view(-1, logits.size(-1)), y.view(-1), ignore_index=-100
+            )
             mask = y != -100
+            total_loss += loss.item() * mask.sum().item()
+            preds = logits.argmax(-1)
             total_correct += ((preds == y) & mask).sum().item()
             total_count += mask.sum().item()
-    return total_loss / len(loader.dataset), total_correct / total_count
+    return total_loss / total_count, total_correct / total_count
 
 
 def main() -> None:
