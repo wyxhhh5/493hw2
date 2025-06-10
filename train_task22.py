@@ -105,7 +105,11 @@ def main() -> None:
 
     paths = [os.path.join(args.data_dir, f) for f in ["train.txt", "val.txt", "test.txt"]]
     vocab, stoi, itos = build_vocab(paths)
-    block_size = max(len(line.strip()) + 1 for p in paths for line in open(p))
+    line_lengths = []
+    for p in paths:
+        with open(p, "r", encoding="utf-8") as f:
+            line_lengths.extend(len(line.strip()) + 1 for line in f)
+    block_size = max(line_lengths)
 
     train_dataset = ArithmeticDataset(paths[0], stoi, block_size, [args.operator], args.prime)
     val_dataset = ArithmeticDataset(paths[1], stoi, block_size, [args.operator], args.prime)
